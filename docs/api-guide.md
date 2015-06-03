@@ -341,12 +341,20 @@ Name | Format | Description
 `_links._documents` | string | Link to documents - invoices, cash sales, Db/Cr notes,...
 `_links._payments` | string | Link to payments received/made
 `_links._cashTransactions` | string | Link to cash-transactions
-`_links._drafts` | string | Link to drafts of documents, payments, cash-transactions
-`_links._vat` | string | Link to vat returns / reports
-`_links._fiscalYearEnds` | string | Link to fiscal-year-ends
-`_links._settings` | string | Link to settings
 `_links._entities` | string | Link to entities
 `_links._items` | string | Link to items - product / services
+`_links._accountingBatches` | string | Link to batches of accounting entries
+`_links._accountingErrors` | string | Link to list of accounting errors found in documents, payments, cash-transactions and accounting-batches
+`_links._drafts` | string | Link to drafts of documents, payments, cash-transactions
+`_links._vatReturns` | string | Link to vat returns / reports
+`_links._fiscalYearEnds` | string | Link to fiscal-year-ends
+`_links._accountStatements` | string | Link to Account Statement reports
+`_links._balanceSheets` | string | Link to Balance Sheet reports
+`_links._incomeStatements` | string | Link to Income Statement reports
+`_links._cashflowStatement` | string | Link to Cashflow Statement reports
+`_links._users` | string | Link to users
+`_links._profiles` | string | Link to access profiles
+`_links._settings` | string | Link to settings
 
 
 <br/>  
@@ -445,8 +453,16 @@ Name | Format | Description
 		"_payments": "/5v4080jn/payments",
 		"_cashTransactions": "/5v4080jn/cash-transactions",
         "_drafts": "/5v4080jn/drafts",
-		"_vat": "/5v4080jn/vat",
-		"_fiscalYearEnds": "/5v4080jn/fiscal-year-ends",
+        "_accountingBatches": "/5v4080jn/accounting-batches",
+        "_accountingErrors": "/5v4080jn/accounting-errors",
+        "_fiscalYearEnds": "/5v4080jn/fiscal-year-ends",
+        "_accountStatements": "/5v4080jn/account-statements",
+        "_balanceSheets": "/5v4080jn/balance-sheets",
+        "_incomeStatements": "/5v4080jn/income-statements",
+        "_cashflowStatements": "/5v4080jn/cashflow-statements",
+		"_vatReturns": "/5v4080jn/vat-returns",
+        "_users": "/5v4080jn/users",
+        "_profiles": "/5v4080jn/profiles",
 		"_settings": "/5v4080jn/settings"
 	}
 }
@@ -624,8 +640,7 @@ Name | Format | Description
 		}
 	],
 	"_links": {
-		"_self": "/5v4080jn/documents",
-        "_company": "/5v4080jn"
+		"_self": "/5v4080jn/documents"
 	}
 }
 ```
@@ -1238,8 +1253,7 @@ Name | Format | Description
 		}
 	],
 	"_links": {
-		"_self": "/5v4080jn/cash-transactions",
-		"_accounts": "/5v4080jn/cash-accounts"
+		"_self": "/5v4080jn/cash-transactions"
 	}
 }
 ```
@@ -2162,8 +2176,7 @@ Name | Format | Description
 			}
 	],
 	"_links": {
-		"_self": "/5v4080jn/accounting-errors",
-        "_company": "/5v4080jn"
+		"_self": "/5v4080jn/accounting-errors"
 	}
 }
 ```
@@ -3055,9 +3068,7 @@ Name | Format | Description
         }
     ],
     "_links": {
-        "_self": "/5v4080jn/users",
-        "_company": "/5v4080jn",
-        "_profiles": "/5v4080jn/profiles"
+        "_self": "/5v4080jn/users"
     }
 }
 ```
@@ -3259,8 +3270,7 @@ Name | Format | Description
         }
     ],
     "_links": {
-        "_self": "/5v4080jn/profiles",
-        "_companies": "/5v4080jn"
+        "_self": "/5v4080jn/profiles"
     }
 }
 ```
