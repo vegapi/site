@@ -168,7 +168,7 @@ The following headers are mandatory in requests to VEGAPI and, if missing, trigg
 Header | Description
 -------------------- | -------------------------------------------------------
 `Host: {appId}.hostname:port` | to identify the API instance (linked to a specific application)
-`Authorization: BASIC {appId}:{authKey}` | to authenticate the client application initially or upon receiving a 401 response
+`Authorization: BASIC XXXXXXXXXXXXXX` | to authenticate the client application initially or upon receiving a 401 response and where XXXXXXXXXXX is the Base64 encoding of {appId}:{authKey}
 `If-Match: XXXXXXXXXXXXXXXX` | to check the resource version (only mandatory for PUT or DELETE requests)
 
 
@@ -251,18 +251,18 @@ Header | Description
 
 VEGAPI resources can exist in several states represented by the value of the predefined string attribute `_status`. The following values are possible and cause specific API behaviors:
 
-* **"empty"** - the status of a resource created by a POST request with an `empty=true` parameter in the query string  - see [Resource Integrity](#overview/resource-integrity). Empty resources:
-	* are not included in responses to GET requests for resource collections
+* **"empty"** - the status of a resource created by a POST request with an empty JSON object `{}` in its body  - see [Resource Integrity](#overview/resource-integrity). Empty resources:
+	* are not included in responses to GET requests for resource collections, except when `?status=empty` is included in the query part of the URL
 	* respond to individual GET, PUT and DELETE requests
 	* are not processed by the API
    
-* **"active"** - the (default) status of a resource created by a successful POST request with a valid `vData` attribute in the request body. Active resources:
+* **"active"** - the (default) status of a resource created by a successful POST request with a valid `_data` attribute in the request body. Active resources:
 	* are included in responses to GET requests for resource collections
 	* respond to individual GET requests
 	* are processed by the API
 
 * **"deleted"** - the status of a resouce after a successful DELETE request. Deleted resources:
-	* are not included in responses to GET requests for resource collections
+	* are not included in responses to GET requests for resource collections, except when `?status=deleted` is included in the query part of the URL
 	* do not respond to individual GET requests (the API returns `410 Gone`)
 	* are not processed by the API
 	
@@ -273,7 +273,7 @@ VEGAPI resources can exist in several states represented by the value of the pre
 
 To help preserve resource integrity, VEGAPI uses 2 mechanisms:
 
-* To create a new resource your application can send a POST request with an `empty=true` parameter in the query string and, after receiving a 201 response, issue a PUT request to the newly created URL with the new resource representation; in the absence of a response to the POST, your application can simply resend it;
+* To create a new resource your application can send a POST request with an empty JSON object `{}` in its body and, after receiving a 201 response, issue a PUT request to the newly created URL with the new resource representation; in the absence of a response to the POST, your application can simply resend it;
 * In each PUT or DELETE request, your application must include a `If-Match` header with the known resource ETag; if this value doesn't match the current resource ETag, the request fails with a 412 Precondition Failed response.
 
 
@@ -358,7 +358,7 @@ Name | Format | Description
 
 
 <br/>  
-`GET /?name={aCompanyName}` - requests a list of all Companies registered in this API instance, possibly filtered by `_name`.
+`GET /?name={aCompanyName}` - requests a list of all Companies registered in this API instance, possibly filtered by `name` or `status`.
 
 * `200 OK` - the response body contains a list of Companies, where _id contains a relative link to a Company
 
@@ -396,7 +396,7 @@ Name | Format | Description
 
 
 <br/>
-`POST /`- requests the creation of a new Company. The request body must contain a representation of the new resource. If the flag `empty=true` is present, the contents of the request body will be ignored and an empty resource will be created (attribute `_status` will have the value "empty"). 
+`POST /`- requests the creation of a new Company. The request body must contain a representation of the new resource or an empty JSON object - see [Resource states](#api/resource-states). 
 
 ```
 {
@@ -615,7 +615,7 @@ Name | Format | Description
 
 
 <br/>
-`GET /{companyId}/documents[?name={aDocumentName}&entity={entityId}&product={productId}&documentType={aDocumentType}&dates=(yyymmdd-yyymmdd)]` - Requests a list of all {companyId} Documents, optionally filtered by name or entity and/or product and/or document type and/or date. The request may include a Range header.
+`GET /{companyId}/documents[?name={aDocumentName}&entity={entityId}&item={itemId}&documentType={aDocumentType}&dates=(yyymmdd-yyymmdd)&status={aStatus}]` - Requests a list of all {companyId} Documents, optionally filtered by name / entity / item / document type / date / status. The request may include a Range header.
 
 * `200 OK` - The response body contains a list of documents
 
@@ -660,7 +660,7 @@ Name | Format | Description
 
 
 <br/>
-`POST /{companyId}/documents` - Requests the creation of a new document. The request body must contain a (possibly empty) representation of the new resource.  If the flag `empty=true` is present, the contents of the request body will be ignored and an empty resource will be created (attribute `_status` will have the value "empty").
+`POST /{companyId}/documents` - Requests the creation of a new document. The request body must contain a representation of the new resource or an empty JSON object - see [Resource states](#api/resource-states).
 
 ```
 {
@@ -960,7 +960,7 @@ Name | Format | Description
 
 
 <br/>
-`GET /{companyId}/payments[?name={aPaymentName}&entity={entityId}&account={accountId}&date=(yyyymmdd-yyyymmdd)]` - Requests a list of all payments, optionally filtered by name or entity and/or account and/or date. The request may include a Range header.
+`GET /{companyId}/payments[?name={aPaymentName}&entity={entityId}&account={accountId}&date=(yyyymmdd-yyyymmdd)&status={aStatus}]` - Requests a list of all payments, optionally filtered by name or entity and/or account and/or date or status. The request may include a Range header.
 
 * `200 OK` - The response body contains a list of documents
 
@@ -997,7 +997,7 @@ Name | Format | Description
 
 
 <br/>
-`POST /{companyId}/payments` - Requests the creation of a new payment. The request body must contain a (possibly empty) representation of the new resource. If the flag `empty=true` is present, the contents of the request body will be ignored and an empty resource will be created (attribute `_status` will have the value "empty").
+`POST /{companyId}/payments` - Requests the creation of a new payment. The request body must contain a representation of the new resource or an empty JSON object - see [Resource states](#api/resource-states).
 
 ```
 {
@@ -1236,7 +1236,7 @@ Name | Format | Description
 
 
 <br/>
-`GET /{companyId}/cash-transactions[?name={aTransactionName}&account={accountId}&date=(yyyymmdd-yyyymmdd)]` - Requests a list of all cash transactions made by {companyId}, optionally filtered by name or cash-account and/or dates. The request may include a Range header.
+`GET /{companyId}/cash-transactions[?name={aTransactionName}&account={accountId}&date=(yyyymmdd-yyyymmdd)&status={aStatus}]` - Requests a list of all cash transactions made by {companyId}, optionally filtered by name or cash-account and/or dates or status. The request may include a Range header.
 
 * `200 OK` - the response body contains a list of cash transactions
 
@@ -1273,7 +1273,7 @@ Name | Format | Description
 
 
 <br/>
-`POST /{companyId/cash-transactions` - Requests the creation of a new cash transaction. The request body must contain a (possibly empty) representation of the new resource. If the flag `empty=true` is present, the contents of the request body will be ignored and an empty resource will be created (attribute `_status` will have the value "empty").
+`POST /{companyId/cash-transactions` - Requests the creation of a new cash transaction. The request body must contain a representation of the new resource or an empty JSON object - see [Resource states](#api/resource-states).
 
 ```
 {
@@ -1469,7 +1469,7 @@ Name | Format | Description
 
 
 <br/>
-`GET /{companyId}/entities[?name={anEntityName}&tags=("www", "zzz"...)]` - Requests a list of all entities created by {companyId}, optionally filtered by name and/or tags. The request may include a Range header.
+`GET /{companyId}/entities[?name={anEntityName}&tags=("www", "zzz"...)&status={aStatus}]` - Requests a list of all entities created by {companyId}, optionally filtered by name or tags or status. The request may include a Range header.
 
 * `200 OK` - the response body contains a list of entities satisfying the query constraints
 
@@ -1507,7 +1507,7 @@ Name | Format | Description
 
 
 <br/>
-`POST /{companyId}/entities` - Requests the creation of a new entity. The request body must contain a (possibly empty) representation of the new resource. If the flag `empty=true` is present, the contents of the request body will be ignored and an empty resource will be created (attribute `_status` will have the value "empty").
+`POST /{companyId}/entities` - Requests the creation of a new entity. The request body must contain a representation of the new resource or an empty JSON object - see [Resource states](#api/resource-states).
 
 ```
 {
@@ -1690,7 +1690,7 @@ Name | Format | Description
 
 
 <br/>
-`GET /{companyId}/items[?name={anItemName}&tags=("www", "zzz"...)]` - Requests a list of items, optionally filtered by name or tags.
+`GET /{companyId}/items[?name={anItemName}&tags=("www", "zzz"...)&status={aStatus}]` - Requests a list of items, optionally filtered by name or tags or status.
 
 * `200 OK` - the response body contains a list of items that satisfy the query constraints
 
@@ -1732,7 +1732,7 @@ Name | Format | Description
 
 
 <br/>
-`POST /{companyId}/items` - Requests the creation of a new item. The request body must contain a (possibly empty) representation of the new resource. If the flag `empty=true` is present, the contents of the request body will be ignored and an empty resource will be created (attribute `_status` will have the value "empty").
+`POST /{companyId}/items` - Requests the creation of a new item. The request body must contain a representation of the new resource or an empty JSON object - see [Resource states](#api/resource-states).
 
 ```
 {
@@ -1914,7 +1914,7 @@ Name | Format | Description
 
 
 <br/>
-`GET /{companyId}/accounting-batches[?name={aBatchName}&dates=(yyyymmdd-yyyymmdd)&journal={aJournalName}]` - Requests a list of all accounting batches created by {companyId}, optionally filtered by name or dates and/or journal name. The request may include a Range header.
+`GET /{companyId}/accounting-batches[?name={aBatchName}&dates=(yyyymmdd-yyyymmdd)&journal={aJournalName}&status={aStatus}]` - Requests a list of all accounting batches created by {companyId}, optionally filtered by name or dates and/or journal name or status. The request may include a Range header.
 
 * `200 OK` - The response body contains a list of batches
 
@@ -1956,7 +1956,7 @@ Name | Format | Description
 
 
 <br/>
-`POST /{companyId}/accounting-batches` - Requests the creation of a new batch of accounting entries. The request body must contain a (possibly empty) representation of the new resource. If the flag `empty=true` is present, the contents of the request body will be ignored and an empty resource will be created (attribute `_status` will have the value "empty").
+`POST /{companyId}/accounting-batches` - Requests the creation of a new batch of accounting entries. The request body must contain a representation of the new resource or an empty JSON object - see [Resource states](#api/resource-states).
 
 ```
 {
@@ -2212,7 +2212,7 @@ Name | Format | Description
 
 A Fiscal-year-end, identified by the URL `/{companyId}/fiscal-year-ends/{fiscalYearEndId}`, represents the closing of a fiscal year for a [Company](#api/companies), indicated by its start and end dates. 
 
-A fiscal year will include all of {companyId}'s financial movements (documents(#api/documents), payments(#api/payments), cash-transactions(#api/cash-transactions) and accounting-batches(#api/accounting-batches)) with a date attribute falling within that fiscal year's start and end dates.
+A fiscal year will include all of {companyId}'s financial movements ([documents](#api/documents), [payments](#api/payments), [cash-transactions](#api/cash-transactions) and [accounting-batches](#api/accounting-batches)) with a date attribute falling within that fiscal year's start and end dates.
 
 Closing a fiscal year triggers the creation of 2 batches of accounting entries: one to zero account balances in that same fiscal year and another to transfer those balances for the next fiscal year. It also prevents further changes to any document belonging to that fiscal year.
 
@@ -2239,7 +2239,7 @@ Name | Format | Description
 
 
 <br/>
-`GET /{companyId}/fiscal-year-ends[?name={aFiscalYearEndName}]` - Requests the list of fiscal-year-ends for {companyId}, optionally filtered by name. The request may include a Range header.
+`GET /{companyId}/fiscal-year-ends[?name={aFiscalYearEndName}&status={aStatus}]` - Requests the list of fiscal-year-ends for {companyId}, optionally filtered by name. The request may include a Range header.
 
 * `200 OK` - The response body contains the a list of resources satisfying the query constraints
 
@@ -2273,7 +2273,7 @@ Name | Format | Description
 
 
 <br/>
-`POST /{companyId}/fiscal-year-ends` - Requests the creation of a new fiscal-year-end. The request body must contain a (possibly empty) representation of the new resource. If the flag `empty=true` is present, the contents of the request body will be ignored and an empty resource will be created (attribute `_status` will have the value "empty").
+`POST /{companyId}/fiscal-year-ends` - Requests the creation of a new fiscal-year-end. The request body must contain a representation of the new resource or an empty JSON object - see [Resource states](#api/resource-states).
 
 ```
 {
@@ -2706,7 +2706,7 @@ Name | Format | Description
 
 
 <br/>
-`GET /{companyId}/vat-returns[?name={a VatReturnName}&dates=(yyyymmdd-yyyymmdd)]` - Requests a list of all VAT Returns made by {companyId}, optionally filtered by return date. The request may include a Range header.
+`GET /{companyId}/vat-returns[?name={a VatReturnName}&dates=(yyyymmdd-yyyymmdd)&status={aStatus}]` - Requests a list of all VAT Returns made by {companyId}, optionally filtered by return date or status. The request may include a Range header.
 
 * `200 OK` - The response body contains a list of VAT Returns
 
@@ -2740,7 +2740,7 @@ Name | Format | Description
 
 
 <br/>
-`POST /{companyId}/vat-returns` - Requests the creation of a new Vat-return. The request body must contain identification data and the dates to be included in the new Vat-return. If the flag `empty=true` is present, the contents of the request body will be ignored and an empty resource will be created (attribute `_status` will have the value "empty").
+`POST /{companyId}/vat-returns` - Requests the creation of a new Vat-return. The request body must contain identification data and the dates to be included in the new Vat-return or an empty JSON object - see [Resource states](#api/resource-states).
 
 ```
 {
@@ -2903,7 +2903,7 @@ Name | Format | Description
 
 
 <br/>
-`GET /{companyId}/drafts[?type={aResourceType}&name={aDraftName}]` - Requests the list of drafts for {companyId}, optionally filtered by resource type and/or name. The request may include a Range header.
+`GET /{companyId}/drafts[?type={aResourceType}&name={aDraftName}&status={aStatus}]` - Requests the list of drafts for {companyId}, optionally filtered by resource type and/or name or status. The request may include a Range header.
 
 * `200 OK` - The response body contains the a list of resources satisfying the query constraints
 
@@ -2937,7 +2937,7 @@ Name | Format | Description
 
 
 <br/>
-`POST /{companyId}/drafts` - Requests the creation of a new draft. The request body must contain a (possibly empty) representation of the new resource. If the flag `empty=true` is present, the contents of the request body will be ignored and an empty resource will be created (attribute `_status` will have the value "empty").
+`POST /{companyId}/drafts` - Requests the creation of a new draft. The request body must contain a representation of the new resource or an empty JSON object - see [Resource states](#api/resource-states).
 
 ```
 {
@@ -3051,7 +3051,7 @@ Name | Format | Description
 
 
 <br/>
-`GET /{companyId}/users[?name={aUserName}]` - Requests a list of all users created by {companyId}, optionally filtered by name. The request may include a Range header.
+`GET /{companyId}/users[?name={aUserName}&status={aStatus}]` - Requests a list of all users created by {companyId}, optionally filtered by name or status. The request may include a Range header.
 
 * `200 OK` - the response body contains a list of users satisfying the query constraints
 
@@ -3089,7 +3089,7 @@ Name | Format | Description
 
 
 <br/>
-`POST /{companyId}/users?empty=true` - Requests the creation of a new user. The request body must contain a (possibly empty) representation of the new resource. If the query parameter `empty=true` is present, the contents of the request body will be ignored and an empty resource will be created (attribute `_status` will have the value "empty").
+`POST /{companyId}/users?empty=true` - Requests the creation of a new user. The request body must contain a representation of the new resource or an empty JSON object - see [Resource states](#api/resource-states).
 
 ```
 {
@@ -3253,7 +3253,7 @@ Name | Format | Description
 
 
 <br/>
-`GET /{companyId}/profiles[?name={aProfileName}]` - Requests a list of all profiles created by {companyId}, optionally filtered by name. The request may include a Range header.
+`GET /{companyId}/profiles[?name={aProfileName}&status={aStatus}]` - Requests a list of all profiles created by {companyId}, optionally filtered by name or status. The request may include a Range header.
 
 * `200 OK` - the response body contains a list of profiles satisfying the query constraints
 
@@ -3291,7 +3291,7 @@ Name | Format | Description
 
 
 <br/>
-`POST /{companyId}/profiles?empty=true` - Requests the creation of a new profile. The request body must contain a (possibly empty) representation of the new resource. If the query parameter `empty=true` is present, the contents of the request body will be ignored and an empty resource will be created (attribute `_status` will have the value "empty").
+`POST /{companyId}/profiles?empty=true` - Requests the creation of a new profile. The request body must contain a representation of the new resource or an empty JSON object - see [Resource states](#api/resource-states).
 
 ```
 {
