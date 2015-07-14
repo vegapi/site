@@ -3768,22 +3768,32 @@ An Audit-log record is a JSON object with the following attributes:
 
 Name | Format | Description
 ---- | ------ | -----------
-`_data` | object | Cashflow-statement report data (read only)
-`_data._title` | string | Report title
-`_data._startDate` | string | Start date for report period
-`_data._endDate` | string | End date for report period
-`_data._reportDate` | string | Date report was generated
-`_data._lines` | array | Report lines
-`_data._lines[i]._sequence` | number | Line sequence number
-`_data._lines[i]._ledgerAccount` | string | Ledger account
-`_data._lines[i]._openingBalanceDebit` | number | TBD
-`_data._lines[i]._openingBalanceCredit` | number | TBD
-`_data._lines[i]._monthlyTurnoverDebit` | number | TBD
-`_data._lines[i]._monthlyTurnoverCredit` | number | TBD
-`_data._lines[i]._closingBalanceDebit` | number | TBD
-`_data._lines[i]._closingBalanceCredit` | number | TBD
-`_links` | object | Links to resources related to this list
-`_links._self` | string | Empty object
+`name` | string | Log name, taken from VEGAPI instance name - see [Resource identification](#overview/resource-identification)
+`hostname` | string | VEGAPI host identification
+`pid` | string | VEGAPI process identification
+`audit` | boolean | Generate audit records? Default is true
+`level` | number | Loggin level. 
+`remoteAddress` | string | IP address of remote client
+`remotePort` | number | Port number of remote client
+`req_id` | string | Unique request identifier assigned to each VEGAPI request
+`req` | object | Client request to VEGAPI
+`req.query` | object | Query part of request URL
+`req.method` | string | Request method
+`req.url` | string | Request URL
+`req.headers` | object | Request headers
+`req.httpVersion` | string | Request HTTP version
+`req.trailers` | object | Request trailers
+`req.version` | string | Logging software version
+`req.body` | object | Request body
+`res` | object | VEGAPI response to client
+`res.StatusCode` | number | Response HTTP status code
+`res.headers` | object | Response headers 
+`res.trailers` | object | Response trailers 
+`res.body` | object | Response body 
+`latency` | number | Latency of this request in ms
+`msg` | string | Text message
+`time` | string | Log creation timestamp
+`v` | number | Logging software version
 
 
 
@@ -3872,20 +3882,7 @@ Name | Format | Description
     "req": {
         "query": {},
         "method": "GET",
-        "url": {
-            "protocol": null,
-            "slashes": null,
-            "auth": null,
-            "host": null,
-            "port": null,
-            "hostname": null,
-            "hash": null,
-            "search": "",
-            "query": {},
-            "pathname": "/41MKs_isO",
-            "path": "/41MKs_isO",
-            "href": "/41MKs_isO"
-        },
+        "url": "/41MKs_isO",
         "headers": {
             "host": "test.vegapi.org:8080",
             "connection": "keep-alive",
