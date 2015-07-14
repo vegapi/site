@@ -18,7 +18,8 @@ The initial version of the API implements the following types of resources:
 * **vat** : a set of resources that allow your application to generate and review VAT returns for a Company
 * **drafts** : resources (of any type) that are being created / updated by your application but are not yet ready to be committed - basically a work area where your app can store "work in progess"  
 * **users** and **profiles**: a set of resources that allow your application to control who is entitled to do what on each resource type  
-* **settings** : a set of resources that allow your application to drive the financial, inventory, accounting and tax processes of VEGAPI.
+* **settings** : a set of resources that allow your application to drive the financial, inventory, accounting and tax processes of VEGAPI
+* **system** : a set of resources that facilitate administration and operation of VEGAPI itself.
 
 
 
@@ -143,7 +144,7 @@ VEGAPI resource attributes are always formatted as JSON values: string, number, 
 * quantities and amounts that require a unit are represented by a JSON object with one or more key-value pairs, where the key contains the unit name and the value is the amount in that unit:
 	* `"_quantity": {"Pieces": 5}` - represents a quantity of 5 pieces
 	* `"_quantity": {"Boxes": 2}` - represents a quantity of 2 boxes
-	* `"_amount": {"GBP": 500.00, "EUR": 640.28}` - represents an amount of 500.00 British Pounds or 653.17 Euro.
+	* `"_amount": {"EUR": 640.28}` - represents an amount of 640.28 Euro.
 
 
 
@@ -3089,7 +3090,7 @@ Name | Format | Description
 
 
 <br/>
-`POST /{companyId}/users?empty=true` - Requests the creation of a new user. The request body must contain a representation of the new resource or an empty JSON object - see [Resource states](#api/resource-states).
+`POST /{companyId}/users` - Requests the creation of a new user. The request body must contain a representation of the new resource or an empty JSON object - see [Resource states](#api/resource-states).
 
 ```
 {
@@ -3291,7 +3292,7 @@ Name | Format | Description
 
 
 <br/>
-`POST /{companyId}/profiles?empty=true` - Requests the creation of a new profile. The request body must contain a representation of the new resource or an empty JSON object - see [Resource states](#api/resource-states).
+`POST /{companyId}/profiles` - Requests the creation of a new profile. The request body must contain a representation of the new resource or an empty JSON object - see [Resource states](#api/resource-states).
 
 ```
 {
@@ -3750,6 +3751,215 @@ Name | Format | Description
 `_links._self` | string | Link to this resource
 `_links._company` | string | Link to company owning this resource
 `_links._settings` | string | Link to {companyId} settings
+
+
+
+
+
+## System
+
+
+-----
+### Audit-logs
+
+An Audit-log, identified by the URL `/audit-logs/{fileName}`, is a file containing a log of all HTPP interactions between your application and VEGAPI for a period of approximately 2 hours.    
+
+An Audit-log record is a JSON object with the following attributes:
+
+Name | Format | Description
+---- | ------ | -----------
+`_data` | object | Cashflow-statement report data (read only)
+`_data._title` | string | Report title
+`_data._startDate` | string | Start date for report period
+`_data._endDate` | string | End date for report period
+`_data._reportDate` | string | Date report was generated
+`_data._lines` | array | Report lines
+`_data._lines[i]._sequence` | number | Line sequence number
+`_data._lines[i]._ledgerAccount` | string | Ledger account
+`_data._lines[i]._openingBalanceDebit` | number | TBD
+`_data._lines[i]._openingBalanceCredit` | number | TBD
+`_data._lines[i]._monthlyTurnoverDebit` | number | TBD
+`_data._lines[i]._monthlyTurnoverCredit` | number | TBD
+`_data._lines[i]._closingBalanceDebit` | number | TBD
+`_data._lines[i]._closingBalanceCredit` | number | TBD
+`_links` | object | Links to resources related to this list
+`_links._self` | string | Empty object
+
+
+
+
+<br/>`GET /audit-logs` - Displays the list of available audit-logs.
+
+* `200 OK` - The response body contains a list of available audit logs
+
+```
+{
+  "_data": [
+    {
+      "_id": "audit.log",
+      "_lastModifiedDate": "2015-07-13T18:55:44.397Z"
+    },
+    {
+      "_id": "audit.log.0",
+      "_lastModifiedDate": "2015-07-13T17:51:15.925Z"
+    },
+    {
+      "_id": "audit.log.1",
+      "_lastModifiedDate": "2015-07-13T15:47:54.881Z"
+    },
+    {
+      "_id": "audit.log.10",
+      "_lastModifiedDate": "2015-07-12T21:39:56.957Z"
+    },
+    {
+      "_id": "audit.log.2",
+      "_lastModifiedDate": "2015-07-13T12:19:04.953Z"
+    },
+    {
+      "_id": "audit.log.3",
+      "_lastModifiedDate": "2015-07-13T11:35:43.953Z"
+    },
+    {
+      "_id": "audit.log.4",
+      "_lastModifiedDate": "2015-07-13T08:50:51.497Z"
+    },
+    {
+      "_id": "audit.log.5",
+      "_lastModifiedDate": "2015-07-13T07:40:01.217Z"
+    },
+    {
+      "_id": "audit.log.6",
+      "_lastModifiedDate": "2015-07-13T04:00:00.093Z"
+    },
+    {
+      "_id": "audit.log.7",
+      "_lastModifiedDate": "2015-07-13T02:30:26.981Z"
+    },
+    {
+      "_id": "audit.log.8",
+      "_lastModifiedDate": "2015-07-13T01:01:48.805Z"
+    },
+    {
+      "_id": "audit.log.9",
+      "_lastModifiedDate": "2015-07-12T22:00:00.097Z"
+    }
+  ],
+  "_links": {
+    "_self": "/audit-logs"
+  }
+}
+```
+
+* `401 Unauthorized` - The response body contains an error object ([see Overview](overview.html#json_error))
+
+
+
+<br/>
+`GET /{companyID}/audit-logs/{auditLogId}` - Requests the full representation of the audit log identified by the URL. The request may include the header If-Modified-Since.
+
+* `200 OK` - The response body contains the resource. The response includes the headers: Last-Modified and ETag.
+
+```
+{
+    "name": "test",
+    "hostname": "ip-172-31-38-27",
+    "pid": 20320,
+    "audit": true,
+    "level": 30,
+    "remoteAddress": "::ffff:94.60.252.25",
+    "remotePort": 53390,
+    "req_id": "7a09992b-2587-4107-8543-4983c9cdd2ff",
+    "req": {
+        "query": {},
+        "method": "GET",
+        "url": {
+            "protocol": null,
+            "slashes": null,
+            "auth": null,
+            "host": null,
+            "port": null,
+            "hostname": null,
+            "hash": null,
+            "search": "",
+            "query": {},
+            "pathname": "/41MKs_isO",
+            "path": "/41MKs_isO",
+            "href": "/41MKs_isO"
+        },
+        "headers": {
+            "host": "test.vegapi.org:8080",
+            "connection": "keep-alive",
+            "accept": "application/json",
+            "cache-control": "no-cache",
+            "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.132 Safari/537.36",
+            "csp": "active",
+            "authorization": "Basic xxxxxxxxxxxxxxxx",
+            "postman-token": "8f5a609d-98e6-b168-d4c0-1b4e4a0c20ab",
+            "accept-encoding": "gzip, deflate, sdch",
+            "accept-language": "en,en-US;q=0.8,pt-PT;q=0.6,pt;q=0.4"
+        },
+        "httpVersion": "1.1",
+        "trailers": {},
+        "version": "*"
+    },
+    "res": {
+        "statusCode": 200,
+        "headers": {
+            "content-encoding": "gzip",
+            "content-type": "application/json"
+        },
+        "trailer": false,
+        "body": {
+            "_id": "/41MKs_isO",
+            "_data": {
+                "_name": "My Company",
+                "_description": "My Company, Lda.",
+                "_taxNumber": "PTXXX",
+                "_country": "PT",
+                "_currency": "EUR",
+                "_addresses": {
+                    "_main": "Ainda outra morada qualquer"
+                },
+                "armazém": 123
+            },
+            "_status": "active",
+            "_lastModifiedDate": "2015-07-12T21:34:57.571Z",
+            "_links": {
+                "_self": "/41MKs_isO",
+                "_company": "/41MKs_isO",
+                "_documents": "/41MKs_isO/documents",
+                "_payments": "/41MKs_isO/payments",
+                "_cashTransactions": "/41MKs_isO/cashTransactions",
+                "_entities": "/41MKs_isO/entities",
+                "_items": "/41MKs_isO/items",
+                "_accountingBatches": "/41MKs_isO/accountingBatches",
+                "_accountingErrors": "/41MKs_isO/accountingErrors",
+                "_fiscalYearEnds": "/41MKs_isO/fiscalYearEnds",
+                "_accountStatements": "/41MKs_isO/accountStatements",
+                "_balanceSheets": "/41MKs_isO/balanceSheets",
+                "_incomeStatements": "/41MKs_isO/incomeStatements",
+                "_cashflowStatements": "/41MKs_isO/cashflowStatements",
+                "_vatReturns": "/41MKs_isO/vatReturns",
+                "_drafts": "/41MKs_isO/drafts",
+                "_users": "/41MKs_isO/users",
+                "_profiles": "/41MKs_isO/profiles",
+                "_settings": "/41MKs_isO/settings"
+            }
+        }
+    },
+    "latency": 5,
+    "_audit": true,
+    "msg": "Handled: 200",
+    "time": "2015-07-13T19:19:48.387Z",
+    "v": 0
+}
+```
+
+* `304 Not Modified` - The resource has not been modified since the date indicated in the request header.
+
+* `404 Not Found` - The resource was not found. The response body contains additional error information
+
+* `410 Gone` - The resource has been deleted. The response body contains additional error information.
 
 
 
